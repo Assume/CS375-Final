@@ -6,7 +6,8 @@
 #include <string.h>
 #include <algorithm>
 #include <chrono>
-
+// add a timer
+// 
 
 #define OBSTACLE_SIZE 3
 
@@ -140,7 +141,7 @@ void setup() {
 			}
 			
 			std::cout <<"SUCCESS" <<std::endl;
-			while(1)  continue;
+			return;
 		}
 		
 		// remove min score from queue
