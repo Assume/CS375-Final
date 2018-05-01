@@ -7,13 +7,8 @@
 #include <algorithm>
 #include <chrono>
 // add a timer
-<<<<<<< Updated upstream
-// 
-=======
 //
->>>>>>> Stashed changes
 
-#define OBSTACLE_SIZE 3
 
 class Node{
 public:
@@ -24,64 +19,16 @@ public:
 };
 
 
-void setup() {
-	//  Serial.print('a');
-	// obstacle X's and Y's
-	const int obstacleX[] = {};
-	const int obstacleY[] = {};
+void setup(Node** graph, int size) {
+	const int destXandY[] = {0,size - 1};
 	const int srcXandY[] = {0,0};
-	const int destXandY[] = {0,15};
-	
-	Node graph[16][16];
-	//  Serial.print('b');
-	
-	// set all g and h costs of each node in graph to infinity(255)
-	for (int i = 0; i < 16; i++){
-		for (int j = 0; j < 16; j++){
-			graph[i][j].gCost = 255;
-			graph[i][j].hCost = 255;
-		}
-	}
-	//  Serial.print('c');
-	
-	// set start node g cost to zero
-	graph[srcXandY[0]][srcXandY[1]].gCost = 0;
-	
-	// set heuristic value of start node
-	graph[srcXandY[0]][srcXandY[1]].hCost = std::abs((destXandY[0] - srcXandY[0]))
-	+ std::abs((destXandY[1] - srcXandY[1]));
-	
-	//  Serial.println(graph[srcXandY[0]][srcXandY[1]].hCost);
-	//  while(1){}
-	// put the startnode in the queue, set the source node bit
-	graph[srcXandY[0]][srcXandY[1]].infoBits |= 0b10001010;
-	
-	// set the info bit for known node obstacles
-	//  for (int i = 0; i < OBSTACLE_SIZE; i++){
-	//    (graph[obstacleX[i]][obstacleY[i]]).infoBits |= 0b100;
-	//  }
-	
-	// set the destination node bits
-	graph[destXandY[0]][destXandY[1]].infoBits |= 0b1001;
-	
-	// set the in queue bit for the start node
-	graph[srcXandY[0]][srcXandY[1]].infoBits |= 0b10000000;
-	// set source's parent x y to itself
-	graph[srcXandY[0]][srcXandY[1]].parentXY = (srcXandY[0] << 4) | srcXandY[1];
-	//  Serial.println(graph[srcXandY[0]][srcXandY[1]].parentXY);
-	// set direction bit of source (started out facing east)
-	graph[srcXandY[0]][srcXandY[1]].infoBits |= 0b010000;
-	
-	
 	auto start_time = std::chrono::high_resolution_clock::now();
-	
-	
 	
 	// start A star algorithm
 	// setup
 	bool queueEmpty = true;
-	for (int i = 0; i < 16; i++){
-		for (int j = 0; j < 16; j++){
+	for (int i = 0; i < size; i++){
+		for (int j = 0; j < size; j++){
 			if (graph[i][j].infoBits & 0b10000000){
 				queueEmpty = false;
 			}
@@ -95,8 +42,8 @@ void setup() {
 		Node *current;
 		int minScore = 510;
 		int xMin, yMin = 17;
-		for (int i = 0; i < 16; i++){
-			for (int j = 0; j < 16; j++){
+		for (int i = 0; i < size; i++){
+			for (int j = 0; j < size; j++){
 				if (graph[i][j].hCost + graph[i][j].gCost < minScore &&
 					graph[i][j].infoBits & 0b10000000){
 					xMin = i;
@@ -116,11 +63,9 @@ void setup() {
 		
 		
 		if (current->infoBits & 0b1){ // if current is destination
-			//      Serial.println(srcXandY[0] << 4);
-			//      Serial.println(srcXandY[1]);
+			
 			int sourceXY = (srcXandY[0] << 4) | srcXandY[1];
-			//      int num = 0;
-			//      current->infoBits |= 0b1000; // add to path
+			
 			std::cout <<"Found Destination Node" << std::endl;
 			std::cout <<"Current parentXY = " << std::endl;
 			std::cout << current->parentXY << std::endl;
@@ -148,12 +93,9 @@ void setup() {
 			}
 			
 			std::cout <<"SUCCESS" <<std::endl;
-<<<<<<< Updated upstream
-=======
 			auto end_time = std::chrono::high_resolution_clock::now();
 			auto runtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time).count();
 			std::cout << runtime  << std::endl;
->>>>>>> Stashed changes
 			return;
 		}
 		
@@ -245,10 +187,69 @@ void setup() {
 }
 
 
+Node** generate_graph(int size, int num_obstacles){
+	
+	// obstacle X's and Y's
+	const int destXandY[] = {0,size - 1};
+	const int srcXandY[] = {0,0};
+	
+	
+	Node** graph = 0;
+	graph = new Node*[size];
+	for (int i = 0; i < size; i++) {
+		graph[i] = new Node[size];
+		
+		for (int j = 0; j < size; j++){
+			Node obstacle = Node();
+			graph[i][j] = obstacle;
+			}
+		}
+	//  Serial.print('b');
+	
+	// set all g and h costs of each node in graph to infinity(255)
+	for (int i = 0; i < size; i++){
+		for (int j = 0; j < size; j++){
+			graph[i][j].gCost = 255;
+			graph[i][j].hCost = 255;
+		}
+	}
+	
+	// set start node g cost to zero
+	graph[srcXandY[0]][srcXandY[1]].gCost = 0;
+	
+	// set heuristic value of start node
+	graph[srcXandY[0]][srcXandY[1]].hCost = std::abs((destXandY[0] - srcXandY[0]))
+	+ std::abs((destXandY[1] - srcXandY[1]));
+	
+	// put the startnode in the queue, set the source node bit
+	graph[srcXandY[0]][srcXandY[1]].infoBits |= 0b10001010;
+	
+	// set the info bit for known node obstacles
+	for (int i = 0; i < num_obstacles; i++)
+		if((std::rand() % num_obstacles + 1) == 1)
+			(graph[std::rand() % size][std::rand() % size]).infoBits |= 0b100;
+		
+	
+	
+	// set the destination node bits
+	graph[destXandY[0]][destXandY[1]].infoBits |= 0b1001;
+	
+	// set the in queue bit for the start node
+	graph[srcXandY[0]][srcXandY[1]].infoBits |= 0b10000000;
+	// set source's parent x y to itself
+	graph[srcXandY[0]][srcXandY[1]].parentXY = (srcXandY[0] << 4) | srcXandY[1];
+	//  Serial.println(graph[srcXandY[0]][srcXandY[1]].parentXY);
+	// set direction bit of source (started out facing east)
+	graph[srcXandY[0]][srcXandY[1]].infoBits |= 0b010000;
+	
+	return graph;
+}
+
+
 
 int main(){
-	
-	setup();
+	Node** graph = generate_graph(16, 256);
+	setup(graph, 16);
 	return 0;
 	
 }
