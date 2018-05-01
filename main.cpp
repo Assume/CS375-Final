@@ -20,7 +20,7 @@ public:
 
 
 void setup(Node** graph, int size) {
-	const int destXandY[] = {0,size - 1};
+	const int destXandY[] = {size/4,size/2};
 	const int srcXandY[] = {0,0};
 	auto start_time = std::chrono::high_resolution_clock::now();
 	
@@ -40,8 +40,8 @@ void setup(Node** graph, int size) {
 	while (!queueEmpty){
 		//    Serial.print('e');
 		Node *current;
-		int minScore = 510;
-		int xMin, yMin = 17;
+		int minScore = size * 2;
+		int xMin, yMin = size+1;
 		for (int i = 0; i < size; i++){
 			for (int j = 0; j < size; j++){
 				if (graph[i][j].hCost + graph[i][j].gCost < minScore &&
@@ -56,10 +56,10 @@ void setup(Node** graph, int size) {
 			}
 		}
 		std::cout << std::endl;
-		std::cout << "xMin: " << std::endl;
+		//std::cout << "xMin: " << std::endl;
 		
 		
-		std::cout<< "yMin: " << yMin << std::endl;
+		//std::cout<< "yMin: " << yMin << std::endl;
 		
 		
 		if (current->infoBits & 0b1){ // if current is destination
@@ -85,14 +85,13 @@ void setup(Node** graph, int size) {
 				//        Serial.println(current->parentXY & 0b1111);
 				std::cout << std::endl;
 				std::cout << "Found Destination Node" << std::endl;
-				std::cout << "Current parentXY = " << std::endl;
-				std::cout <<current->parentXY << std::endl;
-				std::cout << "Source XY = " << std::endl;
-				std::cout << sourceXY << std::endl;
+				std::cout << "Current parentXY = " << current -> parentXY << std::endl;
+				std::cout << "Source XY = " << sourceXY << std::endl;
+				std::cout <<"SUCCESS" <<std::endl;
 				
 			}
 			
-			std::cout <<"SUCCESS" <<std::endl;
+			
 			auto end_time = std::chrono::high_resolution_clock::now();
 			auto runtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time).count();
 			std::cout << runtime  << std::endl;
@@ -111,7 +110,7 @@ void setup(Node** graph, int size) {
 			nebArr[i] = 0;
 		}
 		// must initialize all the neighbors' direction bits
-		if (xMin != 15){
+		if (xMin != size-1){
 			rightNeb = &graph[xMin+1][yMin];
 			rightNeb->infoBits |= 0b010000;
 			nebArr[0] = rightNeb;
@@ -127,7 +126,7 @@ void setup(Node** graph, int size) {
 			topNeb->infoBits |= 0b000000;
 			nebArr[2] = topNeb;
 		}
-		if (yMin != 15){
+		if (yMin != size-1){
 			botNeb = &graph[xMin][yMin+1];
 			botNeb->infoBits |= 0b100000;
 			nebArr[3] = botNeb;
@@ -138,9 +137,6 @@ void setup(Node** graph, int size) {
 			if (nebArr[i]->infoBits & 0b01000000) continue; // in closed set
 			if (!(nebArr[i]->infoBits & 0b10000000))
 				nebArr[i]->infoBits |= 0b10001010; // add to queue
-			
-			//      Serial.print("d----");
-			//      Serial.println(current->parentXY);
 			
 			// update direction bits
 			// define the cost of each neighbor
@@ -162,8 +158,7 @@ void setup(Node** graph, int size) {
 					//          current->infoBits |= nebArr[i]->infoBits & 0b110000;
 					break;
 			}
-			while (dist == 100)
-				std::cout << "PROBLEM WITH DIST SWITCH STATEMENT" << std::endl;
+			
 			int tent_cost = current->gCost + dist;
 			if (tent_cost >= nebArr[i]->gCost)  continue;
 			nebArr[i]->parentXY = (xMin << 4) | yMin;
@@ -175,8 +170,8 @@ void setup(Node** graph, int size) {
 		}
 		
 		queueEmpty = true;
-		for (int i = 0; i < 16; i++){
-			for (int j = 0; j < 16; j++){
+		for (int i = 0; i < size; i++){
+			for (int j = 0; j < size; j++){
 				if (graph[i][j].infoBits & 0b10000000){
 					queueEmpty = false;
 				}
@@ -190,7 +185,7 @@ void setup(Node** graph, int size) {
 Node** generate_graph(int size, int num_obstacles){
 	
 	// obstacle X's and Y's
-	const int destXandY[] = {0,size - 1};
+	const int destXandY[] = {size/4,size/2};
 	const int srcXandY[] = {0,0};
 	
 	
@@ -209,8 +204,8 @@ Node** generate_graph(int size, int num_obstacles){
 	// set all g and h costs of each node in graph to infinity(255)
 	for (int i = 0; i < size; i++){
 		for (int j = 0; j < size; j++){
-			graph[i][j].gCost = 255;
-			graph[i][j].hCost = 255;
+			graph[i][j].gCost = (size * size) - 1;
+			graph[i][j].hCost = (size * size) - 1;
 		}
 	}
 	
@@ -248,8 +243,9 @@ Node** generate_graph(int size, int num_obstacles){
 
 
 int main(){
-	Node** graph = generate_graph(16, 256);
-	setup(graph, 16);
+	int size = 10000;
+	Node** graph = generate_graph(size, 100);
+	setup(graph, size);
 	return 0;
 	
 }
