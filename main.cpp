@@ -7,7 +7,11 @@
 #include <algorithm>
 #include <chrono>
 // add a timer
+<<<<<<< Updated upstream
 // 
+=======
+//
+>>>>>>> Stashed changes
 
 #define OBSTACLE_SIZE 3
 
@@ -67,6 +71,9 @@ void setup() {
 	//  Serial.println(graph[srcXandY[0]][srcXandY[1]].parentXY);
 	// set direction bit of source (started out facing east)
 	graph[srcXandY[0]][srcXandY[1]].infoBits |= 0b010000;
+	
+	
+	auto start_time = std::chrono::high_resolution_clock::now();
 	
 	
 	
@@ -141,6 +148,12 @@ void setup() {
 			}
 			
 			std::cout <<"SUCCESS" <<std::endl;
+<<<<<<< Updated upstream
+=======
+			auto end_time = std::chrono::high_resolution_clock::now();
+			auto runtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time).count();
+			std::cout << runtime  << std::endl;
+>>>>>>> Stashed changes
 			return;
 		}
 		
@@ -234,6 +247,7 @@ void setup() {
 
 
 int main(){
+	
 	setup();
 	return 0;
 	
