@@ -1,3 +1,11 @@
+//
+//  main2.cpp
+//  375Final
+//
+//  Created by Adam Berelowitz on 5/1/18.
+//  Copyright © 2018 Adam Berelowitz. All rights reserved.
+//
+
 #include <stdio.h>
 #include <vector>
 #include <iostream>
@@ -6,41 +14,48 @@
 #include <string.h>
 #include <algorithm>
 #include <chrono>
-// add a timer
-//
+
+#include "main2.hpp"
 
 
-class Node{
+
+class Node {
 public:
 	int parentXY;
 	int hCost;
 	int gCost;
 	int infoBits = 0;
+	/*Info bits is used as follows:
+	 -infoBits[0] = If node is currently in the queue
+	 -infoBits[1] = If node has been through the queue yet
+	 -infoBits<2:3> = Direction of next node in path
+	 -infoBits[4] = If node is in path
+	 -infoBits[5] = If node is obstacle
+	 -infoBits[6] = If node is source
+	 -infoBits[7] = If node is destination
+	 */
 };
 
 
-void setup(Node** graph, int size) {
-	const int destXandY[] = {size/2,size-5};
-	const int srcXandY[] = {0,0};
-	auto start_time = std::chrono::high_resolution_clock::now();
-	
-	// start A star algorithm
-	// setup
+
+void aStar(Node ** graph, int size, int sourceX, int sourceY) {
+	int inPath[size * size];
+	int destXandY[] = {size/4, size/2};
+	//Start A star algorithm
+	//Setup
 	bool queueEmpty = true;
-	for (int i = 0; i < size; i++){
-		for (int j = 0; j < size; j++){
-			if (graph[i][j].infoBits & 0b10000000){
+	for (int i = 0; i < size; i++) {
+		for (int j = 0; j < size; j++) {
+			if (graph[i][j].infoBits & 0b10000000) {
 				queueEmpty = false;
 			}
 		}
 	}
-	//  Serial.print('d');
 	
-	// algorithm start
-	while (!queueEmpty){
-		//    Serial.print('e');
+	//Algorithm start
+	while (!queueEmpty) {
 		Node *current;
-		int minScore = size * 2;
+		int minScore = size * 100;
 		int xMin, yMin = size+1;
 		for (int i = 0; i < size; i++){
 			for (int j = 0; j < size; j++){
@@ -49,98 +64,111 @@ void setup(Node** graph, int size) {
 					xMin = i;
 					yMin = j;
 					current = &graph[i][j];
-					//          Serial.print("c----");
-					//          Serial.println(current->parentXY);
 					minScore = current->hCost + current->gCost;
 				}
 			}
 		}
-		std::cout << std::endl;
-		//std::cout << "xMin: " << std::endl;
-		
-		
-		//std::cout<< "yMin: " << yMin << std::endl;
-		
-		
-		if (current->infoBits & 0b1){ // if current is destination
-			
-			int sourceXY = (srcXandY[0] << 11) | srcXandY[1];
-			
-			std::cout <<"Found Destination Node" << std::endl;
-			std::cout <<"Current parentXY = " << std::endl;
-			std::cout << current->parentXY << std::endl;
-			std::cout <<"Source XY = " << std::endl;
-			std::cout <<sourceXY << std::endl;
-			while (current->parentXY != sourceXY){
-				//        Serial.print('f');
-				//        Serial.println("curent's parent: ");
-				//        Serial.println(current->parentXY);
-				//        Serial.println("source xy: ");
-				//        Serial.println(sourceXY);
-				//        Serial.println("reconstruct");
+		if (current->infoBits & 0b1) { // if current is destination
+			int sourceXY = (sourceX << 11) | sourceY;
+			std::cout << "Found Destination Node" << std::endl;
+			int count = 0;
+			int index = 3;
+			inPath[1] = destXandY[0];
+			inPath[2] = destXandY[1];
+			while (current->parentXY != sourceXY) {
 				current->infoBits |= 0b1000; // add to path
+				count++;
+				inPath[index] = current->parentXY >> 11;
+				index++;
+				inPath[index] = current->parentXY & 0b1111;
+				index++;
 				current = &(graph[current->parentXY >> 11][current->parentXY & 0b1111]);
-				//        Serial.println("node num "); Serial.println(num);
-				//        Serial.println("path x, y"); Serial.println(current->parentXY >> 4);
-				//        Serial.println(current->parentXY & 0b1111);
-				std::cout << std::endl;
-				std::cout << "Found Destination Node" << std::endl;
-				std::cout << "Current parentXY = " << current -> parentXY << std::endl;
-				std::cout << "Source XY = " << sourceXY << std::endl;
-				std::cout <<"SUCCESS" <<std::endl;
-				
+				if (current->infoBits & 0b1000) {
+					//Serial.println("ADDED TO PATH");
+				}
+			/*	Serial.print(count);
+				Serial.println(" nodes in path, excluding source/destination");
+				Serial.print("Current parent X, Y = ");
+				Serial.print(current->parentXY >> 11);
+				Serial.print(", ");
+				Serial.println(current->parentXY & 0b1111);
+				Serial.print("Source X, Y = ");
+				Serial.print(sourceX);
+				Serial.print(", ");
+				Serial.println(sourceY);
+				Serial.println();*/
 			}
-			
-			
-			auto end_time = std::chrono::high_resolution_clock::now();
-			auto runtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time).count();
-			std::cout << runtime  << std::endl;
+			inPath[0] = count + 2;
+			inPath[count * 2 + 3] = sourceX;
+			inPath[count * 2 + 4] = sourceY;
+		/*	Serial.print(count);
+			Serial.println(" ADDED TO PATH");
+		 */
+			std::cout << "SUCCESS" << std::endl;
+			//Debug
+		//	Serial.println("AFTER A STAR");
+			//Serial.println("in path coords.");
+			/*for (int k = 0; k <= inPath[0] * 2; k++) {
+				Serial.print(inPath[k]);
+				if (k == (inPath[0] * 2)) {
+					Serial.println();
+				}
+				else if ((k % 2) == 1) {
+					Serial.print(", ");
+				}
+				else {
+					Serial.print("; ");
+				}
+			}
+			Serial.println();*/
 			return;
 		}
 		
-		// remove min score from queue
-		current->infoBits &= 0b01111111;  //remove from queue bit
-		current->infoBits |= 0b01000000;  //add to visited
+		//Remove min score from queue
+		current->infoBits &= 0b01111111;  //Remove from queue bit
+		current->infoBits |= 0b01000000;  //Add to visited
+		
 		////////// setup for loop //////////////////////
-		// check if neighbor is new, then add it to the open queue
-		// not in the queue and not been visited
+		//Check if neighbor is new, then add it to the open queue
+		//Not in the queue and not been visited
 		Node *rightNeb, *leftNeb, *topNeb, *botNeb;
 		Node* nebArr[4];
-		for (int i=0;i<4;i++){
+		for (int i = 0; i < 4; i++) {
 			nebArr[i] = 0;
 		}
-		// must initialize all the neighbors' direction bits
-		if (xMin != size-1){
-			rightNeb = &graph[xMin+1][yMin];
+		//Must initialize all the neighbors' direction bits
+		if (xMin != size-1) {
+			rightNeb = &graph[xMin + 1][yMin];
 			rightNeb->infoBits |= 0b010000;
 			nebArr[0] = rightNeb;
 			
 		}
-		if (xMin != 0){
-			leftNeb = &graph[xMin-1][yMin];
+		if (xMin != 0) {
+			leftNeb = &graph[xMin - 1][yMin];
 			leftNeb->infoBits |= 0b110000;
 			nebArr[1] = leftNeb;
 		}
-		if (yMin != 0){
-			topNeb = &graph[xMin][yMin-1];
+		if (yMin != 0) {
+			topNeb = &graph[xMin][yMin - 1];
 			topNeb->infoBits |= 0b000000;
 			nebArr[2] = topNeb;
 		}
-		if (yMin != size-1){
-			botNeb = &graph[xMin][yMin+1];
+		if (yMin != size-1) {
+			botNeb = &graph[xMin][yMin + 1];
 			botNeb->infoBits |= 0b100000;
 			nebArr[3] = botNeb;
 		}
 		int dist, h_offset;
-		for (int i=0;i<4;i++){
+		for (int i = 0; i < 4; i++) {
 			if (nebArr[i] == 0)  continue;  // no neighbor
+			if (nebArr[i]->infoBits & 0b100)  continue; // is an obstacle
 			if (nebArr[i]->infoBits & 0b01000000) continue; // in closed set
 			if (!(nebArr[i]->infoBits & 0b10000000))
-				nebArr[i]->infoBits |= 0b10001010; // add to queue
+				nebArr[i]->infoBits |= 0b10000000; // add to queue
 			
-			// update direction bits
-			// define the cost of each neighbor
-			switch (((current->infoBits & 0b110000) ^ (nebArr[i]->infoBits & 0b110000)) >> 11){
+			//Update direction bits
+			//Define the cost of each neighbor
+			switch (((current->infoBits & 0b110000) ^ (nebArr[i]->infoBits & 0b110000)) >> 11) {
 				case 0:
 					dist = 1;
 					//          current node stays the same direction
@@ -158,21 +186,20 @@ void setup(Node** graph, int size) {
 					//          current->infoBits |= nebArr[i]->infoBits & 0b110000;
 					break;
 			}
-			
+			//while (dist == 100) Serial.println("PROBLEM WITH DIST SWITCH STATEMENT");
 			int tent_cost = current->gCost + dist;
 			if (tent_cost >= nebArr[i]->gCost)  continue;
 			nebArr[i]->parentXY = (xMin << 11) | yMin;
 			
 			nebArr[i]->gCost = tent_cost;
-			nebArr[i]->hCost = abs(destXandY[0] - xMin) + abs(destXandY[1] - yMin) -1;
-			//      Serial.println("yo");
+			nebArr[i]->hCost = abs(destXandY[0] - xMin) + abs(destXandY[1] - yMin) - 1;
 			
 		}
 		
 		queueEmpty = true;
-		for (int i = 0; i < size; i++){
-			for (int j = 0; j < size; j++){
-				if (graph[i][j].infoBits & 0b10000000){
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < size; j++) {
+				if (graph[i][j].infoBits & 0b10000000) {
 					queueEmpty = false;
 				}
 			}
@@ -180,6 +207,7 @@ void setup(Node** graph, int size) {
 		
 	}
 }
+
 
 
 Node** generate_graph(int size, int num_obstacles){
@@ -196,8 +224,8 @@ Node** generate_graph(int size, int num_obstacles){
 		for (int j = 0; j < size; j++){
 			Node obstacle = Node();
 			graph[i][j] = obstacle;
-			}
 		}
+	}
 	//  Serial.print('b');
 	
 	// set all g and h costs of each node in graph to infinity(255)
@@ -220,9 +248,9 @@ Node** generate_graph(int size, int num_obstacles){
 	
 	// set the info bit for known node obstacles
 	for (int i = 0; i < num_obstacles/size; i++)
-			(graph[i][i]).infoBits |= 0b100;
-			//(graph[std::rand() % size][std::rand() % size]).infoBits |= 0b100;
-		
+		(graph[i][i]).infoBits |= 0b100;
+	//(graph[std::rand() % size][std::rand() % size]).infoBits |= 0b100;
+	
 	
 	
 	// set the destination node bits
@@ -240,11 +268,11 @@ Node** generate_graph(int size, int num_obstacles){
 }
 
 
-
 int main(){
-	int size = 100;
-	Node** graph = generate_graph(size, 100);
-	setup(graph, size);
+	int size = 1000;
+	Node** graph = generate_graph(size, 5);
+	aStar(graph,size,0,0);
+	std::cout << "end" <<std::endl;
 	return 0;
 	
 }
