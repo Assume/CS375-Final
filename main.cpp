@@ -20,7 +20,7 @@ public:
 
 
 void setup(Node** graph, int size) {
-	const int destXandY[] = {size/4,size/2};
+	const int destXandY[] = {size/2,size-5};
 	const int srcXandY[] = {0,0};
 	auto start_time = std::chrono::high_resolution_clock::now();
 	
@@ -64,7 +64,7 @@ void setup(Node** graph, int size) {
 		
 		if (current->infoBits & 0b1){ // if current is destination
 			
-			int sourceXY = (srcXandY[0] << 4) | srcXandY[1];
+			int sourceXY = (srcXandY[0] << 11) | srcXandY[1];
 			
 			std::cout <<"Found Destination Node" << std::endl;
 			std::cout <<"Current parentXY = " << std::endl;
@@ -79,7 +79,7 @@ void setup(Node** graph, int size) {
 				//        Serial.println(sourceXY);
 				//        Serial.println("reconstruct");
 				current->infoBits |= 0b1000; // add to path
-				current = &(graph[current->parentXY >> 4][current->parentXY & 0b1111]);
+				current = &(graph[current->parentXY >> 11][current->parentXY & 0b1111]);
 				//        Serial.println("node num "); Serial.println(num);
 				//        Serial.println("path x, y"); Serial.println(current->parentXY >> 4);
 				//        Serial.println(current->parentXY & 0b1111);
@@ -140,7 +140,7 @@ void setup(Node** graph, int size) {
 			
 			// update direction bits
 			// define the cost of each neighbor
-			switch (((current->infoBits & 0b110000) ^ (nebArr[i]->infoBits & 0b110000)) >> 4){
+			switch (((current->infoBits & 0b110000) ^ (nebArr[i]->infoBits & 0b110000)) >> 11){
 				case 0:
 					dist = 1;
 					//          current node stays the same direction
@@ -161,7 +161,7 @@ void setup(Node** graph, int size) {
 			
 			int tent_cost = current->gCost + dist;
 			if (tent_cost >= nebArr[i]->gCost)  continue;
-			nebArr[i]->parentXY = (xMin << 4) | yMin;
+			nebArr[i]->parentXY = (xMin << 11) | yMin;
 			
 			nebArr[i]->gCost = tent_cost;
 			nebArr[i]->hCost = abs(destXandY[0] - xMin) + abs(destXandY[1] - yMin) -1;
@@ -185,7 +185,7 @@ void setup(Node** graph, int size) {
 Node** generate_graph(int size, int num_obstacles){
 	
 	// obstacle X's and Y's
-	const int destXandY[] = {size/4,size/2};
+	const int destXandY[] = {size/2,size-5};
 	const int srcXandY[] = {0,0};
 	
 	
@@ -193,7 +193,6 @@ Node** generate_graph(int size, int num_obstacles){
 	graph = new Node*[size];
 	for (int i = 0; i < size; i++) {
 		graph[i] = new Node[size];
-		
 		for (int j = 0; j < size; j++){
 			Node obstacle = Node();
 			graph[i][j] = obstacle;
@@ -220,9 +219,9 @@ Node** generate_graph(int size, int num_obstacles){
 	graph[srcXandY[0]][srcXandY[1]].infoBits |= 0b10001010;
 	
 	// set the info bit for known node obstacles
-	for (int i = 0; i < num_obstacles; i++)
-		if((std::rand() % num_obstacles + 1) == 1)
-			(graph[std::rand() % size][std::rand() % size]).infoBits |= 0b100;
+	for (int i = 0; i < num_obstacles/size; i++)
+			(graph[i][i]).infoBits |= 0b100;
+			//(graph[std::rand() % size][std::rand() % size]).infoBits |= 0b100;
 		
 	
 	
@@ -232,7 +231,7 @@ Node** generate_graph(int size, int num_obstacles){
 	// set the in queue bit for the start node
 	graph[srcXandY[0]][srcXandY[1]].infoBits |= 0b10000000;
 	// set source's parent x y to itself
-	graph[srcXandY[0]][srcXandY[1]].parentXY = (srcXandY[0] << 4) | srcXandY[1];
+	graph[srcXandY[0]][srcXandY[1]].parentXY = (srcXandY[0] << 11) | srcXandY[1];
 	//  Serial.println(graph[srcXandY[0]][srcXandY[1]].parentXY);
 	// set direction bit of source (started out facing east)
 	graph[srcXandY[0]][srcXandY[1]].infoBits |= 0b010000;
@@ -243,7 +242,7 @@ Node** generate_graph(int size, int num_obstacles){
 
 
 int main(){
-	int size = 10000;
+	int size = 100;
 	Node** graph = generate_graph(size, 100);
 	setup(graph, size);
 	return 0;
