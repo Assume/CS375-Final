@@ -269,10 +269,12 @@ Node** generate_graph(int size, int num_obstacles){
 
 
 int main(){
-	int size = 1000;
+	int size = 300;
 	Node** graph = generate_graph(size, 5);
+	auto start_time = std::chrono::high_resolution_clock::now();
 	aStar(graph,size,0,0);
-	std::cout << "end" <<std::endl;
+	auto end_time = std::chrono::high_resolution_clock::now();
+	auto runtime = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time).count();
 	return 0;
 	
 }
